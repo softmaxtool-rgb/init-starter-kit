@@ -15,6 +15,9 @@ import SdForm, { SdHtmlEditor, SvgIcon, SvgData } from 'sd-render';
 import draggable from 'vuedraggable';
 import 'sd-render/style.css';
 
+// side-effect: dayjs.extend(buddhistEra/localizedFormat) + register locale th — จำเป็นสำหรับ date BE (SdDatePickerBE / date-input)
+import './core/dayjs-plugin';
+
 import acl from './config/Acl';
 
 const pinia = createPinia();
