@@ -864,3 +864,164 @@ html.dark .el-card.pcard.pcard-bg {
   max-width: 390px;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   navbar-menu.css · ปรับสไตล์ el-menu (horizontal navbar) ให้ดูดีขึ้น
+   ────────────────────────────────────────────────────────────────────
+   คงชื่อคลาส Element Plus เดิมทั้งหมด · ออกแบบให้ "ปรับสีเองแล้วยังสวย"
+   โดยไม่ override ตัวแปรสีที่แอปตั้ง:
+     navbar_bg_color   → style="background-color: …"   (พื้น navbar)
+     navbar_text_color → --el-menu-text-color           (สีตัวอักษร)
+     navbar_border_color → style="border-bottom-color"  (เส้นล่าง)
+     menu_bg/hover_bg/hover_text → --el-menu-* (popper)
+
+   ปรับแค่ layout · ระยะ · ตัวชี้ active · hover pill · โลโก้ · dropdown
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── แถบ navbar ───────────────────────────────────────────────────── */
+.el-menu.el-menu--horizontal.el-menu-demo {
+  height: 59px;
+  align-items: center;
+  gap: 3px;
+  padding: 0 18px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: none;
+}
+
+/* ── รายการเมนู (item + sub-menu title) ───────────────────────────── */
+.el-menu--horizontal.el-menu-demo > .el-menu-item,
+.el-menu--horizontal.el-menu-demo > .el-sub-menu > .el-sub-menu__title {
+  height: 40px;
+  line-height: 40px;
+  margin: 0 1px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border-bottom: none !important;       /* ตัดเส้นใต้ default ของ EP */
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+/* ไอคอนนำหน้าเมนู */
+.el-menu--horizontal.el-menu-demo .el-menu-item .svg-icon,
+.el-menu--horizontal.el-menu-demo .el-sub-menu__title .svg-icon {
+  margin-right: 7px;
+  font-size: 17px;
+  vertical-align: -3px;
+}
+
+/* hover — สีจางจาก primary ชุดเดียวกับ active (ไล่ความเข้ม จึงดูเข้ากัน) */
+.el-menu--horizontal.el-menu-demo > .el-menu-item:not(.is-disabled):not(.is-active):hover,
+.el-menu--horizontal.el-menu-demo > .el-menu-item:not(.is-disabled):not(.is-active):focus,
+.el-menu--horizontal.el-menu-demo > .el-sub-menu:not(.is-disabled):hover > .el-sub-menu__title,
+.el-menu--horizontal.el-menu-demo > .el-sub-menu:not(.is-disabled):focus > .el-sub-menu__title {
+  background-color: color-mix(in srgb, var(--el-color-primary) 8%, transparent);
+  color: var(--el-color-primary);
+}
+
+/* แถบพื้นสี (data-solid) — hover ใช้ขาวโปร่ง ชุดเดียวกับ active */
+.el-menu--horizontal.el-menu-demo[data-solid] > .el-menu-item:not(.is-disabled):not(.is-active):hover,
+.el-menu--horizontal.el-menu-demo[data-solid] > .el-menu-item:not(.is-disabled):not(.is-active):focus,
+.el-menu--horizontal.el-menu-demo[data-solid] > .el-sub-menu:not(.is-disabled):hover > .el-sub-menu__title,
+.el-menu--horizontal.el-menu-demo[data-solid] > .el-sub-menu:not(.is-disabled):focus > .el-sub-menu__title {
+  background-color: rgba(255, 255, 255, .12);
+  color: #fff;
+}
+
+/* active — pill พื้นสีจางบาง ๆ + ตัวอักษรสีแบรนด์ (ไม่ทึบจนเกิน) */
+.el-menu--horizontal.el-menu-demo > .el-menu-item.is-active {
+  // background-color: color-mix(in srgb, var(--el-color-primary) 15%, transparent);
+  color: var(--el-color-primary) !important;
+  font-weight: 600;
+}
+.el-menu--horizontal.el-menu-demo > .el-menu-item.is-active .svg-icon,
+.el-menu--horizontal.el-menu-demo > .el-menu-item.is-active .el-icon { color: var(--el-color-primary); }
+
+/* active บนแถบพื้นสี (data-solid) — ขาวโปร่งบาง ๆ ให้อ่านชัด */
+.el-menu--horizontal.el-menu-demo[data-solid] > .el-menu-item.is-active {
+  // background-color: rgba(255, 255, 255, .16);
+  color: #fff !important;
+  box-shadow: none;
+}
+.el-menu--horizontal.el-menu-demo[data-solid] > .el-menu-item.is-active .svg-icon,
+.el-menu--horizontal.el-menu-demo[data-solid] > .el-menu-item.is-active .el-icon { color: #fff; }
+/* แถบพื้นสี: เส้นคั่นล่างขาวโปร่ง */
+.el-menu--horizontal.el-menu-demo[data-solid] { border-bottom-color: rgba(255, 255, 255, .18); }
+
+/* ลูกศร sub-menu — ชิดขึ้นนิด */
+.el-menu--horizontal.el-menu-demo .el-sub-menu__icon-arrow {
+  margin-left: 4px;
+  right: 3px;
+  transition: transform .2s ease;
+}
+
+/* ── โลโก้ (sub-menu แรก class menu-custom) ───────────────────────── */
+.el-menu--horizontal.el-menu-demo > .el-sub-menu.menu-custom > .el-sub-menu__title {
+  padding: 0 14px 0 6px;
+}
+.logo-container .icon-logo { font-size: 30px; }
+.logo-container .text-6 { font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+.logo-container .text-4 { font-size: 13px; font-weight: 600; opacity: .75; }
+.logo-container .text-3 { font-size: 11.5px; font-weight: 500; opacity: .6; letter-spacing: .01em; }
+/* โลโก้ + กลุ่มยูทิลิตี้ (menu-custom) ไม่ต้องมีพื้น hover ที่ title
+   (ให้ hover เฉพาะปุ่มข้างใน) — ครอบทั้งแถบปกติและแถบพื้นสี */
+.el-menu--horizontal.el-menu-demo > .el-sub-menu.menu-custom:hover > .el-sub-menu__title,
+.el-menu--horizontal.el-menu-demo > .el-sub-menu.menu-custom:focus > .el-sub-menu__title,
+.el-menu--horizontal.el-menu-demo[data-solid] > .el-sub-menu.menu-custom:hover > .el-sub-menu__title,
+.el-menu--horizontal.el-menu-demo[data-solid] > .el-sub-menu.menu-custom:focus > .el-sub-menu__title {
+  background-color: transparent;
+}
+
+/* ── ชื่อหน้า (el-text ตรงกลาง) ───────────────────────────────────── */
+.el-menu--horizontal.el-menu-demo > .el-text {
+  font-weight: 600;
+  opacity: .85;
+}
+
+/* ── กลุ่มขวาสุด: avatar · badge · switch · settings ───────────────── */
+.el-menu--horizontal.el-menu-demo .el-sub-menu__title .el-avatar { margin-right: 7px; }
+/* กลุ่มยูทิลิตี้ขวาสุด: เว้นช่องไฟสม่ำเสมอระหว่างกระดิ่ง/เส้นคั่น/สวิตช์/เฟือง */
+.el-menu--horizontal.el-menu-demo > .el-sub-menu.menu-custom > .el-sub-menu__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.el-menu--horizontal.el-menu-demo .menu-custom .el-switch { margin: 0 !important; }
+.el-menu--horizontal.el-menu-demo .menu-custom .el-button.is-link {
+  height: 38px; width: 38px; padding: 0;
+  display: inline-grid; place-items: center;
+  border-radius: 9px;
+  color: inherit;
+}
+/* ไอคอนในปุ่มยูทิลิตี้: เคลียร์ margin ติดลบเดิม ให้อยู่กึ่งกลางกล่อง */
+.el-menu--horizontal.el-menu-demo .menu-custom .el-button.is-link .el-icon { margin: 0 !important; }
+.el-menu--horizontal.el-menu-demo .menu-custom .el-button.is-link:hover {
+  background-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+.el-menu--horizontal.el-menu-demo .menu-custom .el-divider--vertical {
+  height: 1.3em;
+  border-color: color-mix(in srgb, currentColor 28%, transparent);
+}
+.el-menu--horizontal.el-menu-demo .menu-custom .el-switch { --el-switch-off-color: color-mix(in srgb, currentColor 25%, transparent); }
+.el-menu--horizontal.el-menu-demo .el-badge__content { border: none; }
+
+/* ── dropdown (popper) — มุมมน เงานุ่ม ระยะหายใจ ───────────────────── */
+.el-menu--horizontal .el-menu--popup,
+.menu-custom-poper .el-menu--popup {
+  min-width: 200px;
+  padding: 6px;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px -10px rgba(15, 23, 42, .28);
+}
+.el-menu--popup .el-menu-item {
+  height: 40px;
+  line-height: 40px;
+  margin: 1px 0;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+}
+.el-menu--popup .el-menu-item .svg-icon,
+.el-menu--popup .el-menu-item .el-icon { margin-right: 9px; font-size: 16px; }
+.el-menu--popup .el-menu-item:not(.is-disabled):hover { background-color: var(--el-fill-color-light); }
+.el-menu--popup .el-menu-item.is-active {  font-weight: 600; }
+.el-menu--popup .el-divider--horizontal { margin: 6px 4px; }
