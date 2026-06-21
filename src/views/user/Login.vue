@@ -50,8 +50,8 @@
 						size="large"
 						:label-width="'140px'"
 						@keyup.enter.prevent="login2FAForm(login2faFormRef)">
-						<el-form-item label="Two-Factor Authentication" prop="token" required>
-							<el-input v-model="verify2FA.token" type="text" :clearable="true" placeholder="Enter 6-digit code" />
+						<el-form-item label="Two-Factor Authentication" prop="token" :rules="otpRules" class="otp-form-item">
+							<el-input-otp v-model="verify2FA.token" :length="6" @finish="login2FAForm(login2faFormRef)" />
 						</el-form-item>
 
 						<el-row class="mb-3">
@@ -110,8 +110,14 @@ const loginModel = reactive<any>({
 
 const login2faFormRef = ref<FormInstance>();
 const verify2FA = reactive({
-	token: null,
+	token: '',
 });
+
+// OTP 6-digit validation — required + ครบ 6 หลัก (เป็นตัวเลข)
+const otpRules = [
+	{ required: true, message: 'Please enter the 6-digit code', trigger: 'change' },
+	{ pattern: /^\d{6}$/, message: 'Code must be 6 digits', trigger: 'change' },
+];
 
 const submitForm = (formEl: FormInstance | undefined) => {
 	if (!formEl) return;
@@ -149,6 +155,11 @@ const login2FAForm = (formEl: FormInstance | undefined) => {
 .login-page {
 	background-color: #8ec5fc;
 	background-image: linear-gradient(62deg, #8ec5fc 0%, #e0c3fc 100%);
+}
+
+// จัด OTP input ให้อยู่กลาง form-item
+.otp-form-item :deep(.el-form-item__content) {
+	justify-content: center;
 }
 
 .dark .login-page {
