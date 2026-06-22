@@ -15,8 +15,8 @@
 
 				<el-card v-if="!!userState.require2FA" shadow="never" class="box-card" header="Two-Factor Disable">
 					<el-form ref="disable2faFormRef" :model="disable2FA" label-position="top" size="large" :label-width="'140px'" @keyup.enter.prevent="disable2faForm(disable2faFormRef)">
-						<el-form-item label="Token" prop="token2fa" required>
-							<el-input v-model="disable2FA.token2fa" type="text" :clearable="true" placeholder="Enter 6-digit code" />
+						<el-form-item label="Token" prop="token2fa" :rules="otpRules" class="otp-form-item">
+							<el-input-otp v-model="disable2FA.token2fa" :length="6" @finish="disable2faForm(disable2faFormRef)" />
 						</el-form-item>
 
 						<el-form-item>
@@ -31,8 +31,8 @@
 					</div>
 
 					<el-form ref="twoFactorFormRef" :model="verify2FA" label-position="top" size="large" :label-width="'140px'" @keyup.enter.prevent="submitForm(twoFactorFormRef)">
-						<el-form-item label="Token" prop="token2fa" required>
-							<el-input v-model="verify2FA.token2fa" type="text" :clearable="true" placeholder="Enter 6-digit code" />
+						<el-form-item label="Token" prop="token2fa" :rules="otpRules" class="otp-form-item">
+							<el-input-otp v-model="verify2FA.token2fa" :length="6" @finish="submitForm(twoFactorFormRef)" />
 						</el-form-item>
 
 						<el-form-item>
@@ -63,11 +63,17 @@ const twoFactorFormRef = ref<FormInstance>();
 const disable2faFormRef = ref<FormInstance>();
 const route = useRoute();
 const verify2FA = reactive({
-	token2fa: null,
+	token2fa: '',
 });
 const disable2FA = reactive({
-	token2fa: null,
+	token2fa: '',
 });
+
+// OTP 6-digit validation — required + ครบ 6 หลัก (เป็นตัวเลข)
+const otpRules = [
+	{ required: true, message: 'Please enter the 6-digit code', trigger: 'change' },
+	{ pattern: /^\d{6}$/, message: 'Code must be 6 digits', trigger: 'change' },
+];
 
 onMounted(() => {
 	options.scrollerHeight = window.innerHeight - 60;
@@ -186,3 +192,10 @@ const disable2faForm = (formEl: FormInstance | undefined) => {
 	});
 };
 </script>
+
+<style lang="scss" scoped>
+// จัด OTP input ให้อยู่กลาง form-item
+.otp-form-item :deep(.el-form-item__content) {
+	justify-content: center;
+}
+</style>
