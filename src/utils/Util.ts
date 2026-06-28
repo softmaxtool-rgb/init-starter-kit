@@ -15,16 +15,13 @@ export const genUUID = function () {
 	return window.crypto.randomUUID();
 };
 
-export const onWindowResizeHandler = function (handler: any): void {
-	let parentHandler: any = window.onresize;
-	if (typeof window.onresize != 'function') {
-		window.onresize = handler;
-	} else {
-		window.onresize = function () {
-			parentHandler();
-			handler();
-		};
-	}
+// ลงทะเบียน resize listener แล้วคืน cleanup function ไว้ถอน (เรียกใน onUnmounted/unmounted เพื่อกัน leak)
+// เดิมใช้ window.onresize chain ซ้อน handler เก่า+ใหม่ → ถอนไม่ได้ → handler ของ component ที่ unmount แล้วค้างใน memory
+// addEventListener: แต่ละ listener อิสระ (ไม่ซ้อนกันทวีคูณ) + ถอนทีละตัวได้
+// backward-compatible: caller เดิมที่ไม่เก็บ return ยังทำงานปกติ แค่ยังไม่ cleanup เท่านั้น
+export const onWindowResizeHandler = function (handler: any): () => void {
+	window.addEventListener('resize', handler);
+	return () => window.removeEventListener('resize', handler);
 };
 
 export function responsivePopup(widthdefault: string) {

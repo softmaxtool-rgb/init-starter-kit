@@ -5,7 +5,7 @@ import { API_URL, REFRESH_TOKEN } from '~/config/AppConfig';
 import { ElMessage } from 'element-plus';
 import { type ConnectProject } from '~/types/Connect';
 import { type SdProvider } from '~/types/SdGridType';
-import { type wsDataReceive, type wsDataSend } from '~/types/Notify';
+import { type SdNotify, type wsDataReceive, type wsDataSend } from '~/types/Notify';
 import { useRouter } from 'vue-router';
 import { deepClone } from '~/utils/Util';
 
@@ -58,6 +58,9 @@ export const useConnectStateStore = defineStore('connectState', {
 		versionStore: {} as any,
 		appParams: {} as any,
 		wsConn: undefined as ConnectWs | undefined,
+		// notify socket = session-level (เปิดครั้งเดียวจาก ensureNotifySocket) — bridge event ไป UI ผ่าน seq+last
+		notifySeq: 0, // bump ทุกครั้งที่มี notify ใหม่ผ่าน filter → ให้ NavHeader watch
+		notifyLast: null as SdNotify | null, // payload ล่าสุดที่ผ่าน filter แล้ว
 	}),
 
 	actions: {
@@ -151,6 +154,40 @@ export const useConnectStateStore = defineStore('connectState', {
 				wsSend: wsSend,
 			};
 		},
+		// เปิด notify socket แบบ idempotent — เปิดครั้งเดียวต่อ session
+		// เรียกได้จากทั้ง login(), login2fa() และ NavHeader onMounted (เคส refresh page ที่ user มาจาก localStorage)
+		ensureNotifySocket() {
+			if (!this.user || !!this.wsConn) return; // ยังไม่ login หรือเปิดอยู่แล้ว → ไม่ต้องทำซ้ำ
+
+			this.wsConn = this.connectWebSocket('notify', 'broadcast', '', (payload) => {
+				if (payload.from != 'server' && payload.method == 'insert') {
+					const rowData: SdNotify = deepClone(payload.data);
+					let notifyStatus = false;
+
+					if (rowData.mode == 'broadcast') {
+						notifyStatus = true;
+					} else if (rowData.mode == 'target' && !!rowData.target) {
+						if (!!this.user && !!this.user.username && rowData.target.includes(this.user.username)) {
+							notifyStatus = true;
+						}
+					} else if (rowData.mode == 'site' && !!rowData.site) {
+						if (!!this.user && !!this.user.site && !!this.user.site.code && rowData.site.includes(this.user.site.code)) {
+							notifyStatus = true;
+						}
+					} else if (rowData.mode == 'unit' && !!rowData.unit) {
+						if (!!this.user && !!this.user.unit && !!this.user.unit.code && rowData.unit.includes(this.user.unit.code)) {
+							notifyStatus = true;
+						}
+					}
+
+					// ผ่าน filter → ส่งต่อให้ UI (NavHeader watch notifySeq) จัดการ notification/count เอง
+					if (notifyStatus) {
+						this.notifyLast = rowData;
+						this.notifySeq++;
+					}
+				}
+			});
+		},
 		getAvatar() {
 			if (!!this.user && !!this.user.avatar && this.user.avatar[0]) {
 				// const avatar: any = this.user.avatar[0];
@@ -205,6 +242,7 @@ export const useConnectStateStore = defineStore('connectState', {
 							}
 
 							this.startRefreshTokenTimer();
+							this.ensureNotifySocket(); // เปิด notify socket ครั้งเดียวหลัง login สำเร็จ
 							if (!!this.returnUrl) {
 								this.router.push(this.returnUrl);
 							} else {
@@ -241,6 +279,7 @@ export const useConnectStateStore = defineStore('connectState', {
 						}
 
 						this.startRefreshTokenTimer();
+						this.ensureNotifySocket(); // เปิด notify socket ครั้งเดียวหลัง login2fa สำเร็จ
 						if (!!this.returnUrl) {
 							this.router.push(this.returnUrl);
 						} else {
@@ -283,6 +322,7 @@ export const useConnectStateStore = defineStore('connectState', {
 
 			if (!!this.wsConn) {
 				this.wsConn?.wsDisconnect();
+				this.wsConn = undefined; // ล้าง handle เพื่อให้ ensureNotifySocket เปิดใหม่ได้ตอน login รอบหน้า
 			}
 
 			this.stopRefreshTokenTimer();

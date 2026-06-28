@@ -69,7 +69,7 @@
 
 <script lang="ts" setup>
 import { useDark } from '@vueuse/core';
-import { computed, onMounted, ref, reactive, nextTick } from 'vue';
+import { computed, onMounted, onUnmounted, ref, reactive, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { type FormInstance } from 'element-plus';
 import { APP_IMG_LOGO, APP_LOGO_TYPE, APP_NAME, APP_SVG_LOGO, API_URL } from '~/config/AppConfig';
@@ -85,11 +85,14 @@ const options = reactive<any>({
 	logoType: APP_LOGO_TYPE,
 });
 
+let resizeCleanup: (() => void) | undefined;
+onUnmounted(() => resizeCleanup?.());
+
 onMounted(() => {
 	appState.isDark = useDark();
 
 	options.scrollerHeight = window.innerHeight;
-	onWindowResizeHandler(async () => {
+	resizeCleanup = onWindowResizeHandler(async () => {
 		await nextTick(() => {
 			options.scrollerHeight = window.innerHeight;
 		});

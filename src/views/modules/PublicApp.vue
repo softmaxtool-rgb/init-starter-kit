@@ -164,11 +164,5 @@ onMounted(async () => {
 			});
 	}
 
-	// options.scrollerHeight = window.innerHeight - 60;
-	// onWindowResizeHandler(async () => {
-	// 	nextTick(() => {
-	// 		options.scrollerHeight = window.innerHeight - 60;
-	// 	});
-	// });
 });
 </script>

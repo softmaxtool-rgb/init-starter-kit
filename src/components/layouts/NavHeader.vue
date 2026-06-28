@@ -164,7 +164,7 @@
 
 <script lang="ts" setup>
 import { useDark } from '@vueuse/core';
-import { onMounted, computed, reactive, nextTick, ref, defineAsyncComponent } from 'vue';
+import { onMounted, onUnmounted, computed, reactive, nextTick, ref, watch, defineAsyncComponent } from 'vue';
 import { APP_VERSION, APP_NAME, APP_SVG_LOGO, APP_IMG_LOGO, APP_LOGO_TYPE, ASSETS_URL, API_URL, APP_SLOGAN } from '~/config/AppConfig';
 import { useAppStateStore } from '~/stores/AppState';
 import { useRoute } from 'vue-router';
@@ -173,7 +173,6 @@ import axios from 'axios';
 import { deepClone, onWindowResizeHandler, responsivePopup } from '~/utils/Util';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { type SdNotify } from '~/types/Notify';
 import { ElNotification, type ScrollbarDirection } from 'element-plus';
 import { useConnectStateStore } from '~/stores/ConnectState';
 import LoadingContent from './LoadingContent.vue';
@@ -217,9 +216,12 @@ const options = reactive({
 	configShow: false as boolean,
 });
 
+let resizeCleanup: (() => void) | undefined;
+onUnmounted(() => resizeCleanup?.());
+
 onMounted(() => {
 	options.scrollerHeight = window.innerHeight - 60;
-	onWindowResizeHandler(async () => {
+	resizeCleanup = onWindowResizeHandler(async () => {
 		await nextTick(() => {
 			options.scrollerHeight = window.innerHeight - 60;
 			options.isEllipsis = window.innerWidth < 1024;
@@ -231,45 +233,31 @@ onMounted(() => {
 
 	if (!!userState.user) {
 		getCountNotify();
-
-		userState.wsConn = userState.connectWebSocket('notify', 'broadcast', '', (payload) => {
-			// console.log('payload', payload);
-			if (payload.from != 'server' && payload.method == 'insert') {
-				const rowData: SdNotify = deepClone(payload.data);
-				let notifyStatus = false;
-
-				if (rowData.mode == 'broadcast') {
-					notifyStatus = true;
-				} else if (rowData.mode == 'target' && !!rowData.target) {
-					if (!!userState.user && !!userState.user.username && rowData.target.includes(userState.user.username)) {
-						notifyStatus = true;
-					}
-				} else if (rowData.mode == 'site' && !!rowData.site) {
-					if (!!userState.user && !!userState.user.site && !!userState.user.site.code && rowData.site.includes(userState.user.site.code)) {
-						notifyStatus = true;
-					}
-				} else if (rowData.mode == 'unit' && !!rowData.unit) {
-					if (!!userState.user && !!userState.user.unit && !!userState.user.unit.code && rowData.unit.includes(userState.user.unit.code)) {
-						notifyStatus = true;
-					}
-				}
-
-				if (notifyStatus) {
-					options.notifyCount++;
-					if (options.drawerEnable) {
-						options.notifyList.unshift(rowData);
-					}
-
-					ElNotification({
-						title: rowData.title,
-						message: rowData.message,
-						type: rowData.type,
-					});
-				}
-			}
-		});
+		// idempotent — เปิด notify socket เฉพาะตอนยังไม่มี (ครอบเคส refresh page ที่ login() ไม่ถูกเรียก)
+		userState.ensureNotifySocket();
 	}
 });
+
+// notify ใหม่จาก store (ผ่าน filter แล้ว) → จัดการ UI: เด้ง notification + นับ + เติม drawer
+watch(
+	() => userState.notifySeq,
+	() => {
+		const rowData = userState.notifyLast;
+		if (!rowData) return;
+
+		options.notifyCount++;
+		if (options.drawerEnable) {
+			options.notifyList.unshift(rowData);
+		}
+
+		ElNotification({
+			title: rowData.title,
+			message: rowData.message,
+			type: rowData.type,
+			duration: 7000,
+		});
+	}
+);
 
 const configShow = () => {
 	options.configShow = true;

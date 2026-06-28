@@ -2,7 +2,7 @@
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "compilerOptions": {
     /* Projects */
-    "composite": true,
+    // "composite": true,
     // "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
 
     /* Language and Environment */
@@ -29,7 +29,7 @@
     "esModuleInterop": true,
 
     /* Emit */
-    "declaration": true,
+    // "declaration": true,
     "sourceMap": true,
     "outDir": "dist",
     "importHelpers": true,

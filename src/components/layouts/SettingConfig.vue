@@ -62,7 +62,7 @@
 </template>
 <script lang="ts" setup>
 import Fuse from 'fuse.js';
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useAppStateStore } from '~/stores/AppState';
 import { deepClone, onWindowResizeHandler, responsivePopup } from '~/utils/Util';
 import { SdDynamicInput } from 'sd-render';
@@ -128,9 +128,12 @@ const editSettingClose = () => {
 	options.showDetail = false;
 };
 
+let resizeCleanup: (() => void) | undefined;
+onUnmounted(() => resizeCleanup?.());
+
 onMounted(() => {
 	options.scrollerHeight = window.innerHeight - 60;
-	onWindowResizeHandler(async () => {
+	resizeCleanup = onWindowResizeHandler(async () => {
 		await nextTick(() => {
 			options.scrollerHeight = window.innerHeight - 60;
 

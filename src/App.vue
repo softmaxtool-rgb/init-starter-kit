@@ -32,7 +32,7 @@
 // import MainPage from './views/MainPage.vue';
 import NavHeader from './components/layouts/NavHeader.vue';
 import { useRoute } from 'vue-router';
-import { computed, nextTick, onMounted, reactive, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, watch } from 'vue';
 import LoadingContent from './components/layouts/LoadingContent.vue';
 import { useAppStateStore } from './stores/AppState';
 import { storeToRefs } from 'pinia';
@@ -101,9 +101,12 @@ watch(
 	{ deep: true }
 );
 
+let resizeCleanup: (() => void) | undefined;
+onUnmounted(() => resizeCleanup?.());
+
 onMounted(() => {
 	options.scrollerHeight = window.innerHeight - 60;
-	onWindowResizeHandler(async () => {
+	resizeCleanup = onWindowResizeHandler(async () => {
 		await nextTick(() => {
 			options.scrollerHeight = window.innerHeight - 60;
 		});

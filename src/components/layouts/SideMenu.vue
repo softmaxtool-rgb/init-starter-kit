@@ -133,6 +133,7 @@ export default defineComponent({
 	data() {
 		return {
 			scrollerHeight: 0,
+			resizeCleanup: undefined as (() => void) | undefined,
 			router: useRouter(),
 			route: useRoute(),
 			isCollapse: this.expandDefault === 'collapse' ? true : false,
@@ -163,7 +164,7 @@ export default defineComponent({
 	},
 	mounted() {
 		this.scrollerHeight = window.innerHeight - this.marginTop;
-		onWindowResizeHandler(() => {
+		this.resizeCleanup = onWindowResizeHandler(() => {
 			this.$nextTick(() => {
 				this.scrollerHeight = window.innerHeight - this.marginTop;
 			});
@@ -184,7 +185,9 @@ export default defineComponent({
 			}
 		}
 	},
-	unmounted() {},
+	unmounted() {
+		this.resizeCleanup?.();
+	},
 	setup(props, ctx) {},
 	methods: {
 		handleClick(row: any, index: number, subMenu: boolean = false) {

@@ -46,7 +46,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref, nextTick } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, nextTick } from 'vue';
 import { onWindowResizeHandler } from '~/utils/Util';
 import { useRoute } from 'vue-router';
 import { ElMessage, type FormInstance } from 'element-plus';
@@ -75,9 +75,12 @@ const otpRules = [
 	{ pattern: /^\d{6}$/, message: 'Code must be 6 digits', trigger: 'change' },
 ];
 
+let resizeCleanup: (() => void) | undefined;
+onUnmounted(() => resizeCleanup?.());
+
 onMounted(() => {
 	options.scrollerHeight = window.innerHeight - 60;
-	onWindowResizeHandler(async () => {
+	resizeCleanup = onWindowResizeHandler(async () => {
 		await nextTick(() => {
 			options.scrollerHeight = window.innerHeight - 60;
 		});
