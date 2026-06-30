@@ -11,14 +11,15 @@
 			v-model="appState.params['site_index_content']"
 			:mode="'mini'"
 			:readonly="true"
-			:user-state="userState as any"></sd-html-editor>
+			:user-state="userState"></sd-html-editor>
 	</template>
 </template>
 
 <script lang="ts" setup>
 import { useAppStateStore } from '~/stores/AppState';
 import { useConnectStateStore } from '~/stores/ConnectState';
+import { SdCrudForm } from 'sd-render';
 
 const appState = useAppStateStore();
-const userState = useConnectStateStore();
+const userState: any = useConnectStateStore();
 </script>
